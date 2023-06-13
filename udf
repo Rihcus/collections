@@ -1,0 +1,71 @@
+import org.apache.hadoop.hive.ql.exec.UDAF;
+import org.apache.hadoop.hive.ql.exec.UDAFEvaluator;
+import org.apache.hadoop.hive.ql.udf.generic.GenericUDAFEvaluator;
+import org.apache.hadoop.hive.ql.udf.generic.GenericUDAFParameterInfo;
+import org.apache.hadoop.hive.ql.udf.generic.GenericUDAFResolver;
+import org.apache.hadoop.hive.ql.udf.generic.GenericUDAFResolver2;
+import org.apache.hadoop.hive.ql.udf.generic.GenericUDAFResolver2Evaluator;
+import org.apache.hadoop.hive.ql.udf.generic.GenericUDAFResolver2Generic;
+import org.apache.hadoop.hive.serde2.objectinspector.*;
+import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectInspectorFactory;
+import org.apache.hadoop.io.Text;
+
+import java.util.HashMap;
+import java.util.Map;
+
+public class MapSumUDAF extends UDAF {
+
+    public static class MapSumUDAFEvaluator implements UDAFEvaluator {
+
+        private transient StandardMapObjectInspector inputMapOI;
+        private transient StandardMapObjectInspector outputMapOI;
+
+        private Map<Text, Integer> intermediateMap;
+
+        @Override
+        public void init() {
+            intermediateMap = new HashMap<>();
+        }
+
+        public boolean iterate(Map<Text, Integer> inputMap) {
+            if (inputMap == null) return true;
+
+            for (Map.Entry<Text, Integer> entry : inputMap.entrySet()) {
+                Text key = entry.getKey();
+                Integer value = entry.getValue();
+
+                intermediateMap.put(key, intermediateMap.getOrDefault(key, 0) + value);
+            }
+
+            return true;
+        }
+
+        public Map<Text, Integer> terminatePartial() {
+            return intermediateMap;
+        }
+
+        public boolean merge(Map<Text, Integer> otherMap) {
+            if (otherMap == null) return true;
+
+            for (Map.Entry<Text, Integer> entry : otherMap.entrySet()) {
+                Text key = entry.getKey();
+                Integer value = entry.getValue();
+
+                intermediateMap.put(key, intermediateMap.getOrDefault(key, 0) + value);
+            }
+
+            return true;
+        }
+
+        public Map<Text, Integer> terminate() {
+            return intermediateMap;
+        }
+
+        public static class GenericUDAFResolver implements GenericUDAFResolver {
+            @Override
+            public GenericUDAFEvaluator getEvaluator(GenericUDAFParameterInfo info) {
+                return new MapSumUDAFEvaluator();
+            }
+        }
+    }
+}
