@@ -1,0 +1,70 @@
+import ast
+
+# Function to find function calls and imports
+def find_function_calls_and_imports(code):
+    tree = ast.parse(code)
+
+    function_calls = []
+    imports = []
+    unrelated_functions = []
+    variables = {}
+
+    # Find function calls and track variable assignments
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
+            function_calls.append(f"{node.func.value.id}.{node.func.attr}")
+        elif isinstance(node, ast.Assign):
+            if len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
+                variable = node.targets[0].id
+                if isinstance(node.value, ast.Attribute):
+                    variables[variable] = f"{node.value.value.id}.{node.value.attr}"
+        elif isinstance(node, ast.Expr) and isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Attribute):
+            unrelated_functions.append(f"{node.value.func.value.id}.{node.value.func.attr}")
+
+    # Find imports
+    for node in tree.body:
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                imports.append(alias.name)
+        elif isinstance(node, ast.ImportFrom):
+            module_name = node.module if node.module else ''
+            for alias in node.names:
+                import_statement = f"{module_name}.{alias.name}" if module_name else alias.name
+                imports.append(import_statement)
+
+    # Relate function calls to import sources or mark as unrelated
+    for i in range(len(function_calls)):
+        function = function_calls[i]
+        parts = function.split('.')
+        variable = parts[0]
+        if variable in variables:
+            import_source = variables[variable]
+            if import_source.startswith('pd.'):
+                import_source = import_source.replace('pd.', 'pandas.')
+            function_calls[i] = f"{import_source}.{parts[1]}"
+
+    return function_calls, imports, unrelated_functions
+
+# Code snippet
+code = """
+import pandas as pd
+X = pd.read_csv()
+result = X.head(10)
+print(X.tail(5))
+"""
+
+# Find function calls, imports, and unrelated functions in the code snippet
+function_calls, imports, unrelated_functions = find_function_calls_and_imports(code)
+
+# Display the results
+print("Function Calls:")
+for function in function_calls:
+    print(function)
+
+print("\nImports:")
+for imp in imports:
+    print(imp)
+
+print("\nUnrelated Functions:")
+for function in unrelated_functions:
+    print(function)
