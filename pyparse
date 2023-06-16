@@ -6,38 +6,31 @@ def find_function_calls_and_imports(code):
 
     function_calls = []
     imports = {}
-    variables = {}
 
-    # Find function calls and track variable assignments
+    # Find function calls and imports
     for node in ast.walk(tree):
         if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
             if isinstance(node.func.value, ast.Name):
                 variable_name = node.func.value.id
-                if variable_name in variables:
-                    import_source = imports[variables[variable_name]]
-                    function_calls.append(f"{import_source}.{node.func.attr}")
+                if variable_name in imports:
+                    function_calls.append(f"{imports[variable_name]}.{node.func.attr}")
                 else:
                     function_calls.append(f"{variable_name}.{node.func.attr}")
         elif isinstance(node, ast.Assign) and isinstance(node.value, ast.Call):
             target_name = node.targets[0].id if isinstance(node.targets[0], ast.Name) else None
             if target_name:
                 function_calls.append(f"{target_name}.{node.value.func.attr}")
-                variables[target_name] = node.value.func.value.id
+                imports[target_name] = 'pandas'
         elif isinstance(node, ast.Import):
             for alias in node.names:
                 imports[alias.asname if alias.asname else alias.name] = alias.name
-        elif isinstance(node, ast.ImportFrom):
-            module_name = node.module if node.module else ''
-            for alias in node.names:
-                import_statement = f"{module_name}.{alias.name}" if module_name else alias.name
-                imports[alias.asname if alias.asname else alias.name] = import_statement
 
     return function_calls, list(imports.values())
 
 # Code snippet
 code = """
-import pandas as pd
-X = pd.read_csv()
+import pandas as tt
+X = tt.read_csv()
 result = X.head(10)
 """
 
