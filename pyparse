@@ -1,47 +1,50 @@
 import ast
 
 # Function to find function calls and imports
-def find_function_calls_and_imports(code):
+def find_imported_function_calls(code):
     tree = ast.parse(code)
 
-    function_calls = []
+    imported_functions = []
     imports = {}
 
-    # Find function calls and imports
+    # Find imported function calls
     for node in ast.walk(tree):
         if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
             if isinstance(node.func.value, ast.Name):
                 variable_name = node.func.value.id
                 if variable_name in imports:
-                    function_calls.append(f"{imports[variable_name]}.{node.func.attr}")
-                else:
-                    function_calls.append(f"{variable_name}.{node.func.attr}")
-        elif isinstance(node, ast.Assign) and isinstance(node.value, ast.Call):
-            target_name = node.targets[0].id if isinstance(node.targets[0], ast.Name) else None
-            if target_name:
-                function_calls.append(f"{target_name}.{node.value.func.attr}")
-                imports[target_name] = 'pandas'
+                    imported_functions.append(f"{imports[variable_name]}.{node.func.attr}")
+        elif isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+            function_name = node.func.id
+            if function_name in imports:
+                imported_functions.append(f"{imports[function_name]}.{function_name}")
+
+        elif isinstance(node, ast.Assign) and isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Attribute):
+            if isinstance(node.value.func.value, ast.Name):
+                variable_name = node.value.func.value.id
+                if variable_name in imports:
+                    imported_functions.append(f"{imports[variable_name]}.{node.value.func.attr}")
+
         elif isinstance(node, ast.Import):
             for alias in node.names:
                 imports[alias.asname if alias.asname else alias.name] = alias.name
 
-    return function_calls, list(imports.values())
+    return imported_functions
 
 # Code snippet
 code = """
-import pandas as tt
-X = tt.read_csv()
-result = X.head(10)
+import pandas as pd
+x = pd.read_csv()
+y = x.head(10)
+f = open('test','r')
+data = f.read()
+f.close()
 """
 
-# Find function calls and imports in the code snippet
-function_calls, imports = find_function_calls_and_imports(code)
+# Find imported function calls in the code snippet
+imported_functions = find_imported_function_calls(code)
 
 # Display the results
-print("Function Calls:")
-for function in function_calls:
+print("Imported Function Calls:")
+for function in imported_functions:
     print(function)
-
-print("\nImports:")
-for imp in imports:
-    print(imp)
