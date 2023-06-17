@@ -3,36 +3,29 @@ import org.apache.hadoop.hive.ql.parse.HiveParser;
 import org.apache.hadoop.hive.ql.parse.ParseException;
 import org.apache.hadoop.hive.ql.parse.ParseDriver;
 
-public class HiveASTGenerator {
+import java.util.ArrayList;
+import java.util.List;
+
+public class HiveASTAnalyzer {
 
     public static void main(String[] args) {
-        String hiveQuery = "SELECT column1, column2 FROM table1 WHERE column3 = 'value'";
+        String hiveQuery = "select a,b,c, count(*) over(partition by a) cnt from x join y on x.a = y.z where avg(c) > 10";
 
         try {
             ParseDriver parseDriver = new ParseDriver();
             ASTNode astNode = parseDriver.parse(hiveQuery);
-            generateCodeFromAST(astNode);
+            analyzeAST(astNode);
         } catch (ParseException e) {
             e.printStackTrace();
         }
     }
 
-    private static void generateCodeFromAST(ASTNode astNode) {
+    private static void analyzeAST(ASTNode astNode) {
         int tokenType = astNode.getToken().getType();
         switch (tokenType) {
-            case HiveParser.TOK_SELECT:
-                System.out.println("Generating SELECT statement code...");
-                // Generate code for the SELECT statement
-                break;
-
-            case HiveParser.TOK_FROM:
-                System.out.println("Generating FROM clause code...");
-                // Generate code for the FROM clause
-                break;
-
-            case HiveParser.TOK_WHERE:
-                System.out.println("Generating WHERE clause code...");
-                // Generate code for the WHERE clause
+            case HiveParser.TOK_QUERY:
+                // Analyze query attributes
+                analyzeQueryAttributes(astNode);
                 break;
 
             // Handle other tokens and cases as needed
@@ -45,7 +38,71 @@ public class HiveASTGenerator {
         // Recursively process child nodes
         for (int i = 0; i < astNode.getChildCount(); i++) {
             ASTNode childNode = (ASTNode) astNode.getChild(i);
-            generateCodeFromAST(childNode);
+            analyzeAST(childNode);
         }
     }
-}
+
+    private static void analyzeQueryAttributes(ASTNode queryNode) {
+        boolean joinedTables = false;
+        boolean functionInWhere = false;
+        boolean aggregationGroupBy = false;
+        boolean aggregationHaving = false;
+        boolean windowFunction = false;
+        boolean sortingOrderBy = false;
+        boolean subqueryInExistsOrIn = false;
+        boolean mergeResult = false;
+
+        List<String> tables = new ArrayList<>();
+
+        for (int i = 0; i < queryNode.getChildCount(); i++) {
+            ASTNode childNode = (ASTNode) queryNode.getChild(i);
+            int tokenType = childNode.getToken().getType();
+
+            switch (tokenType) {
+                case HiveParser.TOK_JOIN:
+                    joinedTables = true;
+                    break;
+
+                case HiveParser.TOK_WHERE:
+                    functionInWhere = checkFunctionUsage(childNode);
+                    break;
+
+                case HiveParser.TOK_GROUPBY:
+                    aggregationGroupBy = true;
+                    break;
+
+                case HiveParser.TOK_HAVING:
+                    aggregationHaving = true;
+                    break;
+
+                case HiveParser.TOK_WINDOWSPEC:
+                    windowFunction = true;
+                    break;
+
+                case HiveParser.TOK_ORDERBY:
+                    sortingOrderBy = true;
+                    break;
+
+                case HiveParser.TOK_SUBQUERY:
+                    subqueryInExistsOrIn = checkSubqueryUsage(childNode);
+                    break;
+
+                case HiveParser.TOK_UNIONALL:
+                case HiveParser.TOK_UNION:
+                    mergeResult = true;
+                    break;
+
+                case HiveParser.TOK_TABREF:
+                    tables.add(childNode.getChild(0).getText());
+                    break;
+
+                default:
+                    // Handle other attributes as needed
+                    break;
+            }
+        }
+
+        System.out.println("Tables joined: " + (joinedTables ? "Yes" : "No"));
+        System.out.println("Functions used in WHERE clause: " + (functionInWhere ? "Yes" : "No"));
+        System.out.println("Aggregation (GROUP BY): " + (aggregationGroupBy ? "Yes" : "No"));
+        System.out.println("Aggregation Filter (HAVING): " + (aggregationHaving ? "
