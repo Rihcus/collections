@@ -1,50 +1,51 @@
-import ast
+import org.apache.hadoop.hive.ql.parse.ASTNode;
+import org.apache.hadoop.hive.ql.parse.HiveParser;
+import org.apache.hadoop.hive.ql.parse.ParseException;
+import org.apache.hadoop.hive.ql.parse.ParseDriver;
 
-# Function to find function calls and imports
-def find_imported_function_calls(code):
-    tree = ast.parse(code)
+public class HiveASTGenerator {
 
-    imported_functions = []
-    imports = {}
+    public static void main(String[] args) {
+        String hiveQuery = "SELECT column1, column2 FROM table1 WHERE column3 = 'value'";
 
-    # Find imported function calls
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
-            if isinstance(node.func.value, ast.Name):
-                variable_name = node.func.value.id
-                if variable_name in imports:
-                    imported_functions.append(f"{imports[variable_name]}.{node.func.attr}")
-        elif isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
-            function_name = node.func.id
-            if function_name in imports:
-                imported_functions.append(f"{imports[function_name]}.{function_name}")
+        try {
+            ParseDriver parseDriver = new ParseDriver();
+            ASTNode astNode = parseDriver.parse(hiveQuery);
+            generateCodeFromAST(astNode);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+    }
 
-        elif isinstance(node, ast.Assign) and isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Attribute):
-            if isinstance(node.value.func.value, ast.Name):
-                variable_name = node.value.func.value.id
-                if variable_name in imports:
-                    imported_functions.append(f"{imports[variable_name]}.{node.value.func.attr}")
+    private static void generateCodeFromAST(ASTNode astNode) {
+        int tokenType = astNode.getToken().getType();
+        switch (tokenType) {
+            case HiveParser.TOK_SELECT:
+                System.out.println("Generating SELECT statement code...");
+                // Generate code for the SELECT statement
+                break;
 
-        elif isinstance(node, ast.Import):
-            for alias in node.names:
-                imports[alias.asname if alias.asname else alias.name] = alias.name
+            case HiveParser.TOK_FROM:
+                System.out.println("Generating FROM clause code...");
+                // Generate code for the FROM clause
+                break;
 
-    return imported_functions
+            case HiveParser.TOK_WHERE:
+                System.out.println("Generating WHERE clause code...");
+                // Generate code for the WHERE clause
+                break;
 
-# Code snippet
-code = """
-import pandas as pd
-x = pd.read_csv()
-y = x.head(10)
-f = open('test','r')
-data = f.read()
-f.close()
-"""
+            // Handle other tokens and cases as needed
 
-# Find imported function calls in the code snippet
-imported_functions = find_imported_function_calls(code)
+            default:
+                // Handle unsupported or unknown tokens
+                System.out.println("Unsupported or unknown token: " + astNode.getText());
+        }
 
-# Display the results
-print("Imported Function Calls:")
-for function in imported_functions:
-    print(function)
+        // Recursively process child nodes
+        for (int i = 0; i < astNode.getChildCount(); i++) {
+            ASTNode childNode = (ASTNode) astNode.getChild(i);
+            generateCodeFromAST(childNode);
+        }
+    }
+}
