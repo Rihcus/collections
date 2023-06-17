@@ -105,4 +105,27 @@ public class HiveASTAnalyzer {
         System.out.println("Tables joined: " + (joinedTables ? "Yes" : "No"));
         System.out.println("Functions used in WHERE clause: " + (functionInWhere ? "Yes" : "No"));
         System.out.println("Aggregation (GROUP BY): " + (aggregationGroupBy ? "Yes" : "No"));
-        System.out.println("Aggregation Filter (HAVING): " + (aggregationHaving ? "
+        System.out.println("Aggregation Filter (HAVING): " + (aggregationHaving ? "Yes" : "No"));
+        System.out.println("Window functions used: " + (windowFunction ? "Yes" : "No"));
+        System.out.println("Sorting (ORDER BY): " + (sortingOrderBy ? "Yes" : "No"));
+        System.out.println("Subquery involved in EXISTS or IN operation: " + (subqueryInExistsOrIn ? "Yes" : "No"));
+        System.out.println("Merge result (UNION or UNION ALL): " + (mergeResult ? "Yes" : "No"));
+
+        System.out.println("List of tables:");
+        for (String table : tables) {
+            System.out.println(table);
+        }
+    }
+
+    private static boolean checkFunctionUsage(ASTNode node) {
+        // Check if any function is used in the WHERE clause
+        // You can implement the logic here based on your specific requirements
+        return false;
+    }
+
+    private static boolean checkSubqueryUsage(ASTNode node) {
+        // Check if there is any subquery involved in EXISTS or IN operation
+        // You can implement the logic here based on your specific requirements
+        return false;
+    }
+}
