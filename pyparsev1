@@ -1,67 +1,101 @@
-import ast
+import org.apache.hadoop.hive.ql.exec.Description;
+import org.apache.hadoop.hive.ql.exec.UDFArgumentException;
+import org.apache.hadoop.hive.ql.exec.UDFArgumentLengthException;
+import org.apache.hadoop.hive.ql.exec.UDFArgumentTypeException;
+import org.apache.hadoop.hive.ql.metadata.HiveException;
+import org.apache.hadoop.hive.ql.udf.generic.GenericUDF;
+import org.apache.hadoop.hive.serde2.objectinspector.*;
+import org.apache.hadoop.hive.serde2.objectinspector.primitive.*;
+import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectInspectorFactory.*;
 
-# Function to find function calls and imports
-def find_function_calls_and_imports(code):
-    tree = ast.parse(code)
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
-    function_calls = []
-    imports = []
-    unrelated_functions = []
-    variables = {}
+@Description(name = "process_string", value = "Processes a string and returns a struct")
+public class ProcessStringUDF extends GenericUDF {
 
-    # Find function calls and track variable assignments
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
-            function_calls.append(f"{node.func.value.id}.{node.func.attr}")
-        elif isinstance(node, ast.Assign):
-            if len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
-                variable = node.targets[0].id
-                if isinstance(node.value, ast.Attribute):
-                    variables[variable] = f"{node.value.value.id}.{node.value.attr}"
-        elif isinstance(node, ast.Expr) and isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Attribute):
-            unrelated_functions.append(f"{node.value.func.value.id}.{node.value.func.attr}")
+    private StructObjectInspector structObjectInspector;
 
-    # Find imports
-    for node in tree.body:
-        if isinstance(node, ast.Import):
-            for alias in node.names:
-                imports.append(alias.name)
-        elif isinstance(node, ast.ImportFrom):
-            module_name = node.module if node.module else ''
-            for alias in node.names:
-                import_statement = f"{module_name}.{alias.name}" if module_name else alias.name
-                imports.append(import_statement)
+    @Override
+    public ObjectInspector initialize(ObjectInspector[] arguments) throws UDFArgumentException {
+        // Check the number of arguments
+        if (arguments.length != 1) {
+            throw new UDFArgumentLengthException("process_string expects one argument");
+        }
 
-    # Relate function calls to import sources or mark as unrelated
-    for i in range(len(function_calls)):
-        function = function_calls[i]
-        parts = function.split('.')
-        variable = parts[0]
-        if variable in variables:
-            function_calls[i] = f"{variables[variable]}.{parts[1]}"
+        // Check the argument type
+        if (!(arguments[0] instanceof StringObjectInspector)) {
+            throw new UDFArgumentTypeException(0, "Argument must be of type string");
+        }
 
-    return function_calls, imports, unrelated_functions
+        // Create struct field names and inspectors
+        ArrayList<String> fieldNames = new ArrayList<>();
+        ArrayList<ObjectInspector> fieldInspectors = new ArrayList<>();
 
-# Code snippet
-code = """
-import pandas as pd
-X = pd.read_csv()
-result = X.head(10)
-print(X.tail(5))
-"""
+        // Field a - int
+        fieldNames.add("a");
+        fieldInspectors.add(PrimitiveObjectInspectorFactory.javaIntObjectInspector);
 
-# Find function calls, imports, and unrelated functions in the code snippet
-function_calls, imports, unrelated_functions = find_function_calls_and_imports(code)
+        // Field b - int
+        fieldNames.add("b");
+        fieldInspectors.add(PrimitiveObjectInspectorFactory.javaIntObjectInspector);
 
-# Display the results
-print("Function Calls:")
-for function in function_calls:
-    print(function)
+        // Field c - array<string>
+        fieldNames.add("c");
+        fieldInspectors.add(ObjectInspectorFactory.getStandardListObjectInspector(PrimitiveObjectInspectorFactory.javaStringObjectInspector));
 
-print("\nImports:")
-for imp in imports:
-    print(imp)
+        // Field d - array<string>
+        fieldNames.add("d");
+        fieldInspectors.add(ObjectInspectorFactory.getStandardListObjectInspector(PrimitiveObjectInspectorFactory.javaStringObjectInspector));
 
-print("\nUnrelated Functions:")
-for function in unrelated_functions:
-    print(function)
+        // Create struct object inspector
+        structObjectInspector = ObjectInspectorFactory.getStandardStructObjectInspector(fieldNames, fieldInspectors);
+
+        return structObjectInspector;
+    }
+
+    @Override
+    public Object evaluate(DeferredObject[] arguments) throws HiveException {
+        // Get the input string
+        String inputString = ((StringObjectInspector) arguments[0].getInspector()).getPrimitiveJavaObject(arguments[0].get());
+
+        // Process the string and extract values
+        int a = processA(inputString);
+        int b = processB(inputString);
+        List<String> c = processC(inputString);
+        List<String> d = processD(inputString);
+
+        // Create the struct object
+        Object[] struct = new Object[]{a, b, c, d};
+
+        return struct;
+    }
+
+    @Override
+    public String getDisplayString(String[] children) {
+        return "process_string(" + children[0] + ")";
+    }
+
+    // Custom methods to process the input string and extract values
+
+    private int processA(String inputString) {
+        // Implement your logic to extract value for field 'a'
+        return 42; // Placeholder value
+    }
+
+    private int processB(String inputString) {
+        // Implement your logic to extract value for field 'b'
+        return 123; // Placeholder value
+    }
+
+    private List<String> processC(String inputString) {
+        // Implement your logic to extract values for field 'c'
+        return Arrays.asList("c1", "c2", "c3"); // Placeholder values
+    }
+
+    private List<String> processD(String inputString) {
+        // Implement your logic to extract values for field 'd'
+        return Arrays.asList("d1", "d2", "d3"); // Placeholder values
+    }
+}
