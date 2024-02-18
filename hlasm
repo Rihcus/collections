@@ -1,0 +1,39 @@
+JNL: Jump if Not Less
+JNLE: Jump if Not Less or Equal
+JNG: Jump if Not Greater
+JNGE: Jump if Not Greater or Equal
+JNE: Jump if Not Equal
+JNZ: Jump if Not Zero
+JGE: Jump if Greater or Equal
+JG: Jump if Greater
+JLE: Jump if Less or Equal
+JL: Jump if Less
+JE: Jump if Equal
+JZ: Jump if Zero
+JC: Jump if Carry
+JNC: Jump if No Carry
+JO: Jump if Overflow
+JNO: Jump if No Overflow
+JS: Jump if Sign
+JNS: Jump if No Sign
+JP: Jump if Parity
+JNP: Jump if No Parity
+
+B: The "Branch" instruction unconditionally transfers control to a specified target address.
+BC: The "Branch Conditional" instruction transfers control to a specified target address if a specified condition is met.
+BE: The "Branch on Equal" instruction transfers control to a specified target address if two operands are equal.
+BNE: The "Branch on Not Equal" instruction transfers control to a specified target address if two operands are not equal.
+BZ: The "Branch on Zero" instruction transfers control to a specified target address if a specified operand is zero.
+BNZ: The "Branch on Not Zero" instruction transfers control to a specified target address if a specified operand is not zero.
+BN: The "Branch on Negative" instruction transfers control to a specified target address if a specified operand is negative.
+BP: The "Branch on Positive" instruction transfers control to a specified target address if a specified operand is positive.
+BL: The "Branch on Less Than" instruction transfers control to a specified target address if the first operand is less than the second operand.
+BGE: The "Branch on Greater Than or Equal" instruction transfers control to a specified target address if the first operand is greater than or equal to the second operand.
+BAL (Branch and Link): Branches to a specified target address and stores the return address in a register.
+BALR (Branch and Link Register): Branches to a target address specified in a register and stores the return address in another register.
+BCTR (Branch on Count Register): Branches to a target address specified in the count register.
+BXLE (Branch and Set Linkage Register): Branches to a target address and sets the linkage register to the return address.
+BXH (Branch on Index High): Branches to a target address if the high-order bit of an index register is set.
+BXLE (Branch on Index Low or Equal): Branches to a target address if the low-order bit of an index register is clear.
+BXLA (Branch on Index Low and Adjust): Branches to a target address if the low-order bit of an index register is set and clears the bit.
+BXHRL (Branch on Index High or Relative): Branches to a target address if the high-order bit of an index register is set, using a relative displacement.
