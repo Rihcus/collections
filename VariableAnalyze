@@ -1,0 +1,61 @@
+import com.github.javaparser.StaticJavaParser;
+import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.expr.AssignExpr;
+import com.github.javaparser.ast.expr.BinaryExpr;
+import com.github.javaparser.ast.expr.IntegerLiteralExpr;
+import com.github.javaparser.ast.expr.NameExpr;
+import com.github.javaparser.ast.expr.VariableDeclarationExpr;
+import com.github.javaparser.ast.type.PrimitiveType;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+
+public class VariableLineageAnalyzer {
+
+    public static void main(String[] args) {
+        // Provide the path to the Java source file
+        String filePath = "YourJavaFile.java";
+        String variableName = "a"; // Variable name for which you want to find lineage
+        analyzeVariableLineage(filePath, variableName);
+    }
+
+    public static void analyzeVariableLineage(String filePath, String variableName) {
+        File file = new File(filePath);
+
+        try {
+            CompilationUnit cu = StaticJavaParser.parse(file);
+
+            // Find method declarations
+            cu.findAll(MethodDeclaration.class).forEach(method -> {
+                method.getBody().ifPresent(body -> {
+                    // Traverse through statements in the method body
+                    body.getStatements().forEach(statement -> {
+                        // Check if the statement is an assignment
+                        if (statement.isExpressionStmt()) {
+                            statement.asExpressionStmt().getExpression().ifAssignExpr(assignExpr -> {
+                                // Check if the assignment involves the variable of interest
+                                if (assignExpr.getTarget().isNameExpr() &&
+                                        assignExpr.getTarget().asNameExpr().getName().asString().equals(variableName)) {
+                                    // Print the lineage
+                                    System.out.println("Lineage of variable " + variableName + ": " + assignExpr.toString());
+                                }
+                            });
+                        }
+                    });
+                });
+            });
+
+            // Check for variable declaration
+            cu.findAll(VariableDeclarationExpr.class).forEach(variableDeclarationExpr -> {
+                if (variableDeclarationExpr.getVariable(0).getNameAsString().equals(variableName)) {
+                    // Print the declaration
+                    System.out.println("Declaration of variable " + variableName + ": " + variableDeclarationExpr.toString());
+                }
+            });
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+}
