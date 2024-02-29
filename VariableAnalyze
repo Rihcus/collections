@@ -59,3 +59,67 @@ public class VariableLineageAnalyzer {
         }
     }
 }
+
+
+import com.github.javaparser.StaticJavaParser;
+import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.NodeList;
+import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.expr.AssignExpr;
+import com.github.javaparser.ast.expr.Expression;
+import com.github.javaparser.ast.expr.NameExpr;
+import com.github.javaparser.ast.expr.VariableDeclarationExpr;
+import com.github.javaparser.ast.nodeTypes.NodeWithStatements;
+import com.github.javaparser.ast.stmt.ExpressionStmt;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+
+public class VariableLineageAnalyzer {
+
+    public static void main(String[] args) {
+        String filePath = "YourJavaFile.java";
+        String variableName = "a"; 
+        analyzeVariableLineage(filePath, variableName);
+    }
+
+    public static void analyzeVariableLineage(String filePath, String variableName) {
+        File file = new File(filePath);
+
+        try {
+            CompilationUnit cu = StaticJavaParser.parse(file);
+
+            // Find method declarations
+            NodeList<MethodDeclaration> methods = cu.findAll(MethodDeclaration.class);
+            for (MethodDeclaration method : methods) {
+                if (method.getBody().isPresent()) {
+                    NodeList<ExpressionStmt> statements = ((NodeWithStatements<MethodDeclaration>) method).getStatements();
+                    for (ExpressionStmt statement : statements) {
+                        Expression expression = statement.getExpression();
+                        if (expression instanceof AssignExpr) {
+                            AssignExpr assignExpr = (AssignExpr) expression;
+                            if (assignExpr.getTarget() instanceof NameExpr) {
+                                NameExpr nameExpr = (NameExpr) assignExpr.getTarget();
+                                if (nameExpr.getName().getIdentifier().equals(variableName)) {
+                                    System.out.println("Lineage of variable " + variableName + ": " + assignExpr);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Check for variable declaration
+            NodeList<VariableDeclarationExpr> variableDeclarations = cu.findAll(VariableDeclarationExpr.class);
+            for (VariableDeclarationExpr variableDeclaration : variableDeclarations) {
+                if (variableDeclaration.getVariables().get(0).getName().getIdentifier().equals(variableName)) {
+                    System.out.println("Declaration of variable " + variableName + ": " + variableDeclaration);
+                }
+            }
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
