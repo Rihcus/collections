@@ -1,3 +1,45 @@
+ private static List<String> parseExpression(Expression expression) {
+        List<String> result = new ArrayList<>();
+
+        if (expression instanceof VariableDeclarationExpr) {
+            VariableDeclarationExpr variableDeclarationExpr = (VariableDeclarationExpr) expression;
+            for (VariableDeclarator variable : variableDeclarationExpr.getVariables()) {
+                result.add(variable.getNameAsString());
+                // Recursively parse the initializer expression
+                result.addAll(parseExpression(variable.getInitializer().get()));
+            }
+        } else if (expression instanceof AssignExpr) {
+            AssignExpr assignExpr = (AssignExpr) expression;
+            result.add(assignExpr.getTarget().toString());
+            result.addAll(parseExpression(assignExpr.getValue()));
+        } else if (expression instanceof ConditionalExpr) {
+            ConditionalExpr conditionalExpr = (ConditionalExpr) expression;
+            result.add("condition");
+            result.addAll(parseExpression(conditionalExpr.getThenExpr()));
+            result.addAll(parseExpression(conditionalExpr.getElseExpr()));
+        } else if (expression instanceof LiteralExpr) {
+            result.add("literal");
+            result.add(expression.toString());
+        } else if (expression instanceof NameExpr) {
+            result.add("variable");
+            result.add(expression.toString());
+        } else if (expression instanceof MethodCallExpr) {
+            MethodCallExpr methodCallExpr = (MethodCallExpr) expression;
+            result.add("function");
+            result.add(methodCallExpr.getNameAsString());
+            // Recursively parse method arguments
+            for (Expression arg : methodCallExpr.getArguments()) {
+                result.addAll(parseExpression(arg));
+            }
+        } else {
+            // Handle other types of expressions as needed
+        }
+
+        return result;
+    }
+}
+
+
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.MethodDeclaration;
