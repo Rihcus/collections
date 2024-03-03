@@ -1,167 +1,32 @@
- private static List<String> parseExpression(Expression expression) {
-        List<String> result = new ArrayList<>();
+def parse_parenthesis(s):
+    def helper(s):
+        result = []
+        i = 0
+        while i < len(s):
+            if s[i] == '(':
+                j = i + 1
+                count = 1
+                while j < len(s) and count > 0:
+                    if s[j] == '(':
+                        count += 1
+                    elif s[j] == ')':
+                        count -= 1
+                    j += 1
+                result.extend(helper(s[i + 1:j - 1]))
+                i = j
+            elif s[i].isalpha():
+                j = i + 1
+                while j < len(s) and s[j].isalpha():
+                    j += 1
+                result.append(s[i:j])
+                i = j
+            else:
+                i += 1
+        return result
 
-        if (expression instanceof VariableDeclarationExpr) {
-            VariableDeclarationExpr variableDeclarationExpr = (VariableDeclarationExpr) expression;
-            for (VariableDeclarator variable : variableDeclarationExpr.getVariables()) {
-                result.add(variable.getNameAsString());
-                // Recursively parse the initializer expression
-                result.addAll(parseExpression(variable.getInitializer().get()));
-            }
-        } else if (expression instanceof AssignExpr) {
-            AssignExpr assignExpr = (AssignExpr) expression;
-            result.add(assignExpr.getTarget().toString());
-            result.addAll(parseExpression(assignExpr.getValue()));
-        } else if (expression instanceof ConditionalExpr) {
-            ConditionalExpr conditionalExpr = (ConditionalExpr) expression;
-            result.add("condition");
-            result.addAll(parseExpression(conditionalExpr.getThenExpr()));
-            result.addAll(parseExpression(conditionalExpr.getElseExpr()));
-        } else if (expression instanceof LiteralExpr) {
-            result.add("literal");
-            result.add(expression.toString());
-        } else if (expression instanceof NameExpr) {
-            result.add("variable");
-            result.add(expression.toString());
-        } else if (expression instanceof MethodCallExpr) {
-            MethodCallExpr methodCallExpr = (MethodCallExpr) expression;
-            result.add("function");
-            result.add(methodCallExpr.getNameAsString());
-            // Recursively parse method arguments
-            for (Expression arg : methodCallExpr.getArguments()) {
-                result.addAll(parseExpression(arg));
-            }
-        } else {
-            // Handle other types of expressions as needed
-        }
+    return ','.join(helper(s))
 
-        return result;
-    }
-}
-
-
-import com.github.javaparser.StaticJavaParser;
-import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.expr.AssignExpr;
-import com.github.javaparser.ast.expr.BinaryExpr;
-import com.github.javaparser.ast.expr.IntegerLiteralExpr;
-import com.github.javaparser.ast.expr.NameExpr;
-import com.github.javaparser.ast.expr.VariableDeclarationExpr;
-import com.github.javaparser.ast.type.PrimitiveType;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-
-public class VariableLineageAnalyzer {
-
-    public static void main(String[] args) {
-        // Provide the path to the Java source file
-        String filePath = "YourJavaFile.java";
-        String variableName = "a"; // Variable name for which you want to find lineage
-        analyzeVariableLineage(filePath, variableName);
-    }
-
-    public static void analyzeVariableLineage(String filePath, String variableName) {
-        File file = new File(filePath);
-
-        try {
-            CompilationUnit cu = StaticJavaParser.parse(file);
-
-            // Find method declarations
-            cu.findAll(MethodDeclaration.class).forEach(method -> {
-                method.getBody().ifPresent(body -> {
-                    // Traverse through statements in the method body
-                    body.getStatements().forEach(statement -> {
-                        // Check if the statement is an assignment
-                        if (statement.isExpressionStmt()) {
-                            statement.asExpressionStmt().getExpression().ifAssignExpr(assignExpr -> {
-                                // Check if the assignment involves the variable of interest
-                                if (assignExpr.getTarget().isNameExpr() &&
-                                        assignExpr.getTarget().asNameExpr().getName().asString().equals(variableName)) {
-                                    // Print the lineage
-                                    System.out.println("Lineage of variable " + variableName + ": " + assignExpr.toString());
-                                }
-                            });
-                        }
-                    });
-                });
-            });
-
-            // Check for variable declaration
-            cu.findAll(VariableDeclarationExpr.class).forEach(variableDeclarationExpr -> {
-                if (variableDeclarationExpr.getVariable(0).getNameAsString().equals(variableName)) {
-                    // Print the declaration
-                    System.out.println("Declaration of variable " + variableName + ": " + variableDeclarationExpr.toString());
-                }
-            });
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-    }
-}
-
-
-import com.github.javaparser.StaticJavaParser;
-import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.NodeList;
-import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.expr.AssignExpr;
-import com.github.javaparser.ast.expr.Expression;
-import com.github.javaparser.ast.expr.NameExpr;
-import com.github.javaparser.ast.expr.VariableDeclarationExpr;
-import com.github.javaparser.ast.nodeTypes.NodeWithStatements;
-import com.github.javaparser.ast.stmt.ExpressionStmt;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-
-public class VariableLineageAnalyzer {
-
-    public static void main(String[] args) {
-        String filePath = "YourJavaFile.java";
-        String variableName = "a"; 
-        analyzeVariableLineage(filePath, variableName);
-    }
-
-    public static void analyzeVariableLineage(String filePath, String variableName) {
-        File file = new File(filePath);
-
-        try {
-            CompilationUnit cu = StaticJavaParser.parse(file);
-
-            // Find method declarations
-            NodeList<MethodDeclaration> methods = cu.findAll(MethodDeclaration.class);
-            for (MethodDeclaration method : methods) {
-                if (method.getBody().isPresent()) {
-                    NodeList<ExpressionStmt> statements = ((NodeWithStatements<MethodDeclaration>) method).getStatements();
-                    for (ExpressionStmt statement : statements) {
-                        Expression expression = statement.getExpression();
-                        if (expression instanceof AssignExpr) {
-                            AssignExpr assignExpr = (AssignExpr) expression;
-                            if (assignExpr.getTarget() instanceof NameExpr) {
-                                NameExpr nameExpr = (NameExpr) assignExpr.getTarget();
-                                if (nameExpr.getName().getIdentifier().equals(variableName)) {
-                                    System.out.println("Lineage of variable " + variableName + ": " + assignExpr);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Check for variable declaration
-            NodeList<VariableDeclarationExpr> variableDeclarations = cu.findAll(VariableDeclarationExpr.class);
-            for (VariableDeclarationExpr variableDeclaration : variableDeclarations) {
-                if (variableDeclaration.getVariables().get(0).getName().getIdentifier().equals(variableName)) {
-                    System.out.println("Declaration of variable " + variableName + ": " + variableDeclaration);
-                }
-            }
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-    }
-}
-
+# Test the function
+input_str = "((a) (b) ((ac)(ZB(a)))"
+output = parse_parenthesis(input_str)
+print(output)  # Output: a,b,ac,ZB,a
