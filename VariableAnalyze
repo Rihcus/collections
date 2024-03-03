@@ -25,8 +25,3 @@ def parse_parenthesis(s):
         return result
 
     return ','.join(helper(s))
-
-# Test the function
-input_str = "((a) (b) ((ac)(ZB(a)))"
-output = parse_parenthesis(input_str)
-print(output)  # Output: a,b,ac,ZB,a
