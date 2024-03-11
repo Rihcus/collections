@@ -1,39 +1,49 @@
-JNL: Jump if Not Less
-JNLE: Jump if Not Less or Equal
-JNG: Jump if Not Greater
-JNGE: Jump if Not Greater or Equal
-JNE: Jump if Not Equal
-JNZ: Jump if Not Zero
-JGE: Jump if Greater or Equal
-JG: Jump if Greater
-JLE: Jump if Less or Equal
-JL: Jump if Less
-JE: Jump if Equal
-JZ: Jump if Zero
-JC: Jump if Carry
-JNC: Jump if No Carry
-JO: Jump if Overflow
-JNO: Jump if No Overflow
-JS: Jump if Sign
-JNS: Jump if No Sign
-JP: Jump if Parity
-JNP: Jump if No Parity
+def read_continued_input():
+    statement = ''
+    continuation_indicator = False
+    entries_order = ['name', 'operation', 'operand', 'remarks']
+    current_entry = 0
+    in_quotes = False
 
-B: The "Branch" instruction unconditionally transfers control to a specified target address.
-BC: The "Branch Conditional" instruction transfers control to a specified target address if a specified condition is met.
-BE: The "Branch on Equal" instruction transfers control to a specified target address if two operands are equal.
-BNE: The "Branch on Not Equal" instruction transfers control to a specified target address if two operands are not equal.
-BZ: The "Branch on Zero" instruction transfers control to a specified target address if a specified operand is zero.
-BNZ: The "Branch on Not Zero" instruction transfers control to a specified target address if a specified operand is not zero.
-BN: The "Branch on Negative" instruction transfers control to a specified target address if a specified operand is negative.
-BP: The "Branch on Positive" instruction transfers control to a specified target address if a specified operand is positive.
-BL: The "Branch on Less Than" instruction transfers control to a specified target address if the first operand is less than the second operand.
-BGE: The "Branch on Greater Than or Equal" instruction transfers control to a specified target address if the first operand is greater than or equal to the second operand.
-BAL (Branch and Link): Branches to a specified target address and stores the return address in a register.
-BALR (Branch and Link Register): Branches to a target address specified in a register and stores the return address in another register.
-BCTR (Branch on Count Register): Branches to a target address specified in the count register.
-BXLE (Branch and Set Linkage Register): Branches to a target address and sets the linkage register to the return address.
-BXH (Branch on Index High): Branches to a target address if the high-order bit of an index register is set.
-BXLE (Branch on Index Low or Equal): Branches to a target address if the low-order bit of an index register is clear.
-BXLA (Branch on Index Low and Adjust): Branches to a target address if the low-order bit of an index register is set and clears the bit.
-BXHRL (Branch on Index High or Relative): Branches to a target address if the high-order bit of an index register is set, using a relative displacement.
+    while True:
+        line = input().rstrip()  # Read input line and remove trailing whitespace
+
+        if not line:  # Stop if empty line is encountered
+            break
+
+        if line[71:].strip():  # Check if continuation indicator field (column 72) is non-empty
+            continuation_indicator = True
+            statement += line[:71].strip()  # Append characters from the line, excluding the continuation indicator field
+        elif continuation_indicator:  # Check if continuation from previous line
+            statement += line[15:].strip()  # Append characters starting from continuation column (column 16)
+        else:  # If not continued from previous line
+            if current_entry < len(entries_order) - 1:
+                entry_start = 0 if entries_order[current_entry] == 'name' else 15
+                entry_end = 15 if entries_order[current_entry] == 'name' else 71
+                entry_value = line[entry_start:entry_end].strip()
+
+                if current_entry == 2:  # Check if operand
+                    if 'L\'' in entry_value:  # Check if operand contains 'L\''
+                        remarks = entry_value.split('L\'', 1)[1]  # Extract content after 'L\'
+                        statement += remarks.strip() + ' '  # Append to remarks
+                        current_entry += 1  # Move to remarks entry
+                        continue
+
+                    if ' ' in entry_value and entry_value[0] == "'" and entry_value[-1] == "'":  # Check for space enclosed in quotes
+                        remarks = entry_value.strip("'")  # Extract content inside quotes
+                        statement += remarks + ' '  # Append to remarks
+                        current_entry += 1  # Move to remarks entry
+                        continue
+
+                statement += entry_value + ' '
+                current_entry += 1
+            else:
+                statement += line.strip()
+
+    return statement
+
+
+print("Enter your input lines (press Enter twice to finish):")
+result = read_continued_input()
+print("\nResulting assembled statement:")
+print(result)
