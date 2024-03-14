@@ -1,0 +1,56 @@
+Tables Column 1,,Tables Column 2,Tables Column 3,Tables Column 4
+BP,,Branch on Plus,RX,BC
+BPR,,Branch on Plus,RR,BCR
+JP,,Jump on Plus,RI,BRC
+BM,,Branch on Minus,RX,BC
+BMR,,Branch on Minus,RR,BCR
+JM,,Jump on Minus,RI,BRC
+BZ,,Branch on Zero,RX,BC
+BZR,,Branch on Zero,RR,BCR
+JZ,,Jump on Zero,RI,BRC
+BO,,Branch on Overflow,RX,BC
+BOR,,Branch on Overflow,RR,BCR
+JO,,Jump on Overflow,RI,BRC
+BNP,,Branch on Not Plus,RX,BC
+BNPR,,Branch on Not Plus,RR,BCR
+JNP,,Jump on Not Plus,RI,BRC
+BNM,,Branch on Not Minus,RX,BC
+BNMR,,Branch on Not Minus,RR,BCR
+JNM,,Jump on Not Minus,RI,BRC
+BNZ,,Branch on Not Zero,RX,BC
+BNZR,,Branch on Not Zero,RR,BCR
+JNZ,,Jump on Not Minus,RI,BRC
+BNO,,Branch on No Overflow,RX,BC
+BNOR,,Branch on No Overflow,RR,BCR
+JNO,,Jump on No Overflow,RI,BRC
+JLU,,Unconditional Long Jump,RIL,BRCL
+JLNOP,,No operation,RIL,BRCL
+JLH,,Jump Long on High,RIL,BRCL
+JLL,,Jump Long on Low,RIL,BRCL
+JLE,,Jump Long on Equal,RIL,BRCL
+JNH,,Jump Long on Not High,RIL,BRCL
+JLNL,,Jump Long on Not Low ,RIL,BRCL
+JLNE,,Jump Long on Not Equal,RIL,BRCL
+JLP,,Jump Long on Plus,RIL,BRCL
+JLM,,Jump Long on Minus,RIL,BRCL
+JLZ,,Jump Long on Zero,RIL,BRCL
+JLO,,Jump Long on Overflow,RIL,BRCL
+JLNP,,Jump Long on Not Plus,RIL,BRCL
+JLNM,,Jump Long on Not Minus,RIL,BRCL
+JLNZ,,Jump Long on Not Zero,RIL,BRCL
+JLNO,,Jump Long on Not Overflow,RIL,BRCL
+BRO,,Branch on Overflow,RI,BRC
+BRP,,Branch on Plus,RI,BRC
+BRH,,Branch on High,RI,BRC
+BRL,,Branch on Low,RI,BRC
+BRM,,Branch on Minus,RI,BRC
+BRNE,,Branch on Not Equal,RI,BRC
+BRNZ,,Branch on Not Minus,RI,BRC
+BRE,,Branch on Equal,RI,BRC
+BRZ,,Branch on Zero,RI,BRC
+BRNL,,Branch on Not Low,RI,BRC
+BRNM,,Branch on Not Minus,RI,BRC
+BRNH,,Branch on Not High,RI,BRC
+BRNP,,Branch on Not Plus,RI,BRC
+BRNO,,Branch on No Overflow,RI,BRC
+BRU,,Unconditional Branch,RI,BRC
