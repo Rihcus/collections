@@ -1,0 +1,27 @@
+def parse_expression(expression):
+  """
+  Parses an expression into a list of strings (numbers, operators, parentheses, variable names).
+
+  Args:
+      expression: The expression string to be parsed.
+
+  Returns:
+      A list of strings representing the parsed expression.
+  """
+  tokens = []
+  buffer = ""
+  for i, char in enumerate(expression):
+    if char.isalnum() or char == "_":  # Allow alphanumeric characters and underscore for variable names
+      buffer += char
+    elif char in "+-*/()":
+      if buffer:
+        tokens.append(buffer)
+        buffer = ""
+      tokens.append(char)
+    else:
+      # Ignore other characters (whitespace, etc.)
+      pass
+  if buffer:
+    tokens.append(buffer)
+
+  return tokens
